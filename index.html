@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Опросники — Павел Фадеев</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --group:#F5F5F7; --ink:#1D1D1F; --ink2:#6E6E73;
+    --hair:#E5E5EA; --accent:#0A84FF; --ok:#34C759; --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    font-size:17px; line-height:1.45;
+    padding-bottom:120px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px}
+
+  /* progress */
+  .progress{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:20}
+  .progress i{display:block;height:100%;width:0%;background:var(--accent);transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .pill{
+    position:fixed;top:14px;right:16px;z-index:20;
+    font-size:13px;font-weight:600;color:var(--ink2);
+    background:rgba(245,245,247,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--hair);border-radius:100px;padding:6px 12px;
+    opacity:0;transform:translateY(-6px);transition:.3s;
+  }
+  .pill.show{opacity:1;transform:none}
+
+  header{padding:72px 0 36px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .lead{color:var(--ink2);margin-top:12px;font-size:16px}
+  .lead b{color:var(--ink);font-weight:600}
+
+  .section-title{
+    font-size:13px;font-weight:600;color:var(--ink2);
+    text-transform:uppercase;letter-spacing:.06em;
+    margin:36px 4px 10px;
+  }
+  .group{background:var(--group);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+  .group.miss,.field.miss{outline:2px solid var(--accent);outline-offset:2px}
+  .q{padding:16px 18px 6px;font-weight:600;font-size:16px;letter-spacing:-.01em}
+  .q .num{color:var(--ink2);font-weight:600;margin-right:6px}
+  .opts{padding:8px 8px 10px}
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:transparent;border:0;text-align:left;cursor:pointer;
+    font:inherit;font-size:15.5px;color:var(--ink);
+    padding:11px 10px;border-radius:11px;
+    transition:background .15s;
+  }
+  .opt:active{background:#E8E8ED}
+  .ring{
+    flex:0 0 22px;height:22px;border-radius:50%;
+    border:1.6px solid #C7C7CC;background:#fff;position:relative;transition:.18s;
+  }
+  .opt[aria-checked="true"]{font-weight:600}
+  .opt[aria-checked="true"] .ring{background:var(--accent);border-color:var(--accent)}
+  .opt[aria-checked="true"] .ring::after{
+    content:"";position:absolute;inset:0;margin:auto;width:7px;height:11px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg);
+  }
+
+  .field{background:var(--group);border-radius:var(--radius);padding:6px 18px;margin-bottom:14px}
+  .field input{
+    width:100%;border:0;background:transparent;font:inherit;font-size:17px;
+    padding:12px 0;color:var(--ink);outline:none;
+  }
+  .field input::placeholder{color:#AEAEB2}
+
+  .hp{position:absolute;left:-5000px;opacity:0;height:0;overflow:hidden}
+
+  .footer{padding:28px 0 0}
+  .send{
+    display:block;width:100%;border:0;cursor:pointer;
+    background:var(--accent);color:#fff;font:inherit;font-size:17px;font-weight:600;
+    padding:16px;border-radius:14px;letter-spacing:-.01em;
+    transition:transform .12s, opacity .2s;
+  }
+  .send:active{transform:scale(.985)}
+  .send[disabled]{opacity:.45;cursor:default}
+  .hint{color:var(--ink2);font-size:13.5px;text-align:center;margin-top:12px}
+  .err{display:none;color:#B3261E;font-size:14.5px;text-align:center;margin-top:12px}
+
+  /* success */
+  .done{display:none;min-height:82vh;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+  .done .card{max-width:420px}
+  .check{
+    width:72px;height:72px;border-radius:50%;background:var(--ok);
+    margin:0 auto 22px;position:relative;
+    animation:pop .45s cubic-bezier(.34,1.56,.64,1)
+  }
+  .check::after{
+    content:"";position:absolute;inset:0;margin:auto;width:20px;height:34px;
+    border:solid #fff;border-width:0 4px 4px 0;transform:translateY(-4px) rotate(45deg);
+  }
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .done p{color:var(--ink2);margin-top:10px;font-size:16px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><i id="bar"></i></div>
+<div class="pill" id="pill">0 из 16</div>
+
+<main class="wrap" id="form">
+  <header>
+    <h1>Пара коротких опросников</h1>
+    <p class="lead">Это займёт около <b>3&nbsp;минут</b>. Отвечайте, опираясь на то, как вы себя чувствовали <b>за&nbsp;последние две недели</b>. Здесь нет правильных и неправильных ответов. Результаты увидит только Павел — обсудите их на встрече.</p>
+  </header>
+
+  <div class="section-title">Ваше имя — обязательно</div>
+  <div class="field" id="nameGroup"><input id="name" type="text" placeholder="Имя или код, о котором договорились" autocomplete="off"></div>
+  <input class="hp" id="hp" type="text" tabindex="-1" autocomplete="off">
+
+  <div class="section-title">Часть 1 — настроение и силы</div>
+  <div id="phq"></div>
+
+  <div class="section-title">Часть 2 — беспокойство и тревога</div>
+  <div id="gad"></div>
+
+  <div class="footer">
+    <button class="send" id="send" disabled>Отправить ответы</button>
+    <p class="hint" id="hint">Кнопка станет активной, когда вы укажете имя и ответите на все вопросы.</p>
+    <p class="err" id="err">Не получилось отправить. Проверьте интернет и попробуйте ещё раз — или просто напишите Павлу в Telegram, что заполнили не вышло.</p>
+  </div>
+</main>
+
+<section class="done" id="done">
+  <div class="card">
+    <div class="check" role="img" aria-label="Готово"></div>
+    <h2>Ответы отправлены</h2>
+    <p>Спасибо. Павел посмотрит результаты и обсудит их с вами на ближайшей встрече.</p>
+  </div>
+</section>
+
+<script>
+/* ============================================================
+   НАСТРОЙКА — заполни две строки ниже и больше ничего не трогай.
+   1) TOKEN — выдаст @BotFather в Telegram (команда /newbot)
+   2) CHAT_ID — твой личный номер чата (как узнать — в инструкции)
+   ============================================================ */
+const TOKEN   = "8949208478:AAF7L-dOuhlUPGwMDrkCOzGWaUpwjF2Rjhk";
+const CHAT_ID = "8785621356";
+/* ============================================================ */
+
+const OPTS = ["Совсем нет","Несколько дней","Больше половины времени","Почти каждый день"];
+
+const PHQ = [
+  "Снижение интереса или удовольствия от занятий, которые обычно нравятся",
+  "Подавленное настроение, чувство угнетённости или безнадёжности",
+  "Трудности с засыпанием, прерывистый сон либо, наоборот, слишком долгий сон",
+  "Чувство усталости или нехватки сил",
+  "Сниженный аппетит или переедание",
+  "Плохие мысли о себе: что вы неудачник, что подвели себя или свою семью",
+  "Трудности с концентрацией внимания — например, при чтении или просмотре видео",
+  "Заметная для окружающих замедленность движений и речи — или, наоборот, суетливость и взбудораженность",
+  "Мысли о том, что вам лучше было бы умереть, или мысли о причинении себе вреда"
+];
+const GAD = [
+  "Повышенная нервная возбудимость, беспокойство или раздражительность",
+  "Неспособность справиться с волнением",
+  "Чрезмерное беспокойство по различным поводам",
+  "Неспособность расслабиться",
+  "Крайняя степень беспокойства: «не могу найти себе места»",
+  "Легко поддаюсь чувству беспокойства",
+  "Опасение чего-то страшного"
+];
+
+const answers = { phq: Array(9).fill(null), gad: Array(7).fill(null) };
+const TOTAL = 17; // 16 вопросов + имя
+
+function build(containerId, items, key, offset){
+  const box = document.getElementById(containerId);
+  items.forEach((text, i) => {
+    const g = document.createElement('div');
+    g.className = 'group'; g.id = key + i;
+    g.innerHTML = '<div class="q" role="heading" aria-level="3"><span class="num">' + (offset + i + 1) + '.</span>' + text + '</div>';
+    const opts = document.createElement('div');
+    opts.className = 'opts'; opts.setAttribute('role','radiogroup');
+    OPTS.forEach((label, v) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt';
+      b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+      b.innerHTML = '<span class="ring" aria-hidden="true"></span>' + label;
+      b.addEventListener('click', () => {
+        answers[key][i] = v;
+        opts.querySelectorAll('.opt').forEach(o => o.setAttribute('aria-checked','false'));
+        b.setAttribute('aria-checked','true');
+        g.classList.remove('miss');
+        refresh();
+      });
+      opts.appendChild(b);
+    });
+    g.appendChild(opts);
+    box.appendChild(g);
+  });
+}
+build('phq', PHQ, 'phq', 0);
+build('gad', GAD, 'gad', 9);
+
+const bar = document.getElementById('bar'), pill = document.getElementById('pill'),
+      send = document.getElementById('send'), hint = document.getElementById('hint'),
+      err = document.getElementById('err');
+
+function nameOk(){ return document.getElementById('name').value.trim().length >= 2; }
+function countDone(){ return (nameOk() ? 1 : 0) + answers.phq.filter(v=>v!==null).length + answers.gad.filter(v=>v!==null).length; }
+function refresh(){
+  const n = countDone();
+  bar.style.width = (n/TOTAL*100) + '%';
+  pill.textContent = n + ' из ' + TOTAL;
+  pill.classList.toggle('show', n > 0 && n < TOTAL);
+  send.disabled = n < TOTAL;
+  hint.style.display = n < TOTAL ? '' : 'none';
+}
+
+function interpPHQ(s){
+  if (s<=4) return 'минимальная выраженность';
+  if (s<=9) return 'лёгкая депрессия';
+  if (s<=14) return 'умеренная депрессия';
+  if (s<=19) return 'умеренно тяжёлая депрессия';
+  return 'тяжёлая депрессия';
+}
+function interpGAD(s){
+  if (s<=4) return 'минимальный уровень тревожности';
+  if (s<=9) return 'лёгкий уровень тревожности';
+  if (s<=14) return 'средний уровень тревожности';
+  return 'высокий уровень тревожности';
+}
+
+send.addEventListener('click', async () => {
+  if (!nameOk()){
+    const g = document.getElementById('nameGroup');
+    g.classList.add('miss'); g.scrollIntoView({block:'center'});
+    document.getElementById('name').focus();
+    return;
+  }
+  if (countDone() < TOTAL){
+    const firstMiss = [...answers.phq.keys()].find(i=>answers.phq[i]===null);
+    const id = firstMiss !== undefined ? 'phq'+firstMiss : 'gad'+[...answers.gad.keys()].find(i=>answers.gad[i]===null);
+    const el = document.getElementById(id);
+    el.classList.add('miss'); el.scrollIntoView({block:'center'});
+    return;
+  }
+  if (document.getElementById('hp').value) return; // honeypot
+
+  const phqSum = answers.phq.reduce((a,b)=>a+b,0);
+  const gadSum = answers.gad.reduce((a,b)=>a+b,0);
+  const name = document.getElementById('name').value.trim();
+  const item9 = answers.phq[8];
+
+  let msg = '\uD83D\uDCCB Опросники — ' + name + '\n' +
+    new Date().toLocaleString('ru-RU', {dateStyle:'short', timeStyle:'short'}) + '\n\n' +
+    'PHQ-9: ' + phqSum + '/27 — ' + interpPHQ(phqSum) + '\n' +
+    'GAD-7: ' + gadSum + '/21 — ' + interpGAD(gadSum) + '\n';
+  if (item9 > 0){
+    msg += '\n\u26A0\uFE0F ПУНКТ 9 PHQ-9 (мысли о смерти / самоповреждении): ' + item9 +
+           ' — посмотреть сегодня, поднять на ближайшем контакте.\n';
+  }
+  msg += '\nОтветы PHQ-9: ' + answers.phq.join(', ') +
+         '\nОтветы GAD-7: ' + answers.gad.join(', ');
+
+  send.disabled = true; send.textContent = 'Отправляем…'; err.style.display = 'none';
+  try {
+    const r = await fetch('https://api.telegram.org/bot' + TOKEN + '/sendMessage', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
+    });
+    if (!r.ok) throw new Error('telegram ' + r.status);
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('pill').style.display = 'none';
+    bar.style.width = '100%';
+    const done = document.getElementById('done');
+    done.style.display = 'flex';
+    window.scrollTo(0,0);
+  } catch(e){
+    err.style.display = 'block';
+    send.disabled = false; send.textContent = 'Отправить ответы';
+  }
+});
+
+document.getElementById('name').addEventListener('input', () => {
+  if (nameOk()) document.getElementById('nameGroup').classList.remove('miss');
+  refresh();
+});
+refresh();
+</script>
+</body>
+</html>
