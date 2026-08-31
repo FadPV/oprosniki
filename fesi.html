@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Шкала уверенности при ходьбе — Павел Фадеев</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --group:#F5F5F7; --ink:#1D1D1F; --ink2:#6E6E73;
+    --hair:#E5E5EA; --accent:#0A84FF; --ok:#34C759; --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    font-size:17px; line-height:1.45;
+    padding-bottom:120px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px}
+
+  .progress{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:20}
+  .progress i{display:block;height:100%;width:0%;background:var(--accent);transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .pill{
+    position:fixed;top:14px;right:16px;z-index:20;
+    font-size:13px;font-weight:600;color:var(--ink2);
+    background:rgba(245,245,247,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--hair);border-radius:100px;padding:6px 12px;
+    opacity:0;transform:translateY(-6px);transition:.3s;
+  }
+  .pill.show{opacity:1;transform:none}
+
+  header{padding:72px 0 36px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .lead{color:var(--ink2);margin-top:12px;font-size:16px}
+  .lead b{color:var(--ink);font-weight:600}
+  .lead + .lead{margin-top:10px}
+
+  .section-title{
+    font-size:13px;font-weight:600;color:var(--ink2);
+    text-transform:uppercase;letter-spacing:.06em;
+    margin:36px 4px 10px;
+  }
+  .group{background:var(--group);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+  .group.miss,.field.miss{outline:2px solid var(--accent);outline-offset:2px}
+  .q{padding:16px 18px 6px;font-weight:600;font-size:16px;letter-spacing:-.01em}
+  .q .num{color:var(--ink2);font-weight:600;margin-right:6px}
+  .q .ex{display:block;font-weight:400;color:var(--ink2);font-size:14.5px;margin-top:3px}
+  .opts{padding:8px 8px 10px}
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:transparent;border:0;text-align:left;cursor:pointer;
+    font:inherit;font-size:15.5px;color:var(--ink);
+    padding:11px 10px;border-radius:11px;
+    transition:background .15s;
+  }
+  .opt:active{background:#E8E8ED}
+  .ring{
+    flex:0 0 22px;height:22px;border-radius:50%;
+    border:1.6px solid #C7C7CC;background:#fff;position:relative;transition:.18s;
+  }
+  .opt[aria-checked="true"]{font-weight:600}
+  .opt[aria-checked="true"] .ring{background:var(--accent);border-color:var(--accent)}
+  .opt[aria-checked="true"] .ring::after{
+    content:"";position:absolute;inset:0;margin:auto;width:7px;height:11px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg);
+  }
+
+  .scale{padding:8px 12px 14px;display:grid;grid-template-columns:repeat(11,1fr);gap:5px}
+  .sc{
+    border:1.6px solid #C7C7CC;background:#fff;border-radius:9px;
+    font:inherit;font-size:15px;font-weight:600;color:var(--ink);
+    padding:11px 0;cursor:pointer;transition:.15s;
+  }
+  .sc[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .scale-ends{display:flex;justify-content:space-between;padding:0 14px 14px;
+    font-size:13px;color:var(--ink2)}
+
+  .field{background:var(--group);border-radius:var(--radius);padding:6px 18px;margin-bottom:14px}
+  .field input{
+    width:100%;border:0;background:transparent;font:inherit;font-size:17px;
+    padding:12px 0;color:var(--ink);outline:none;
+  }
+  .field input::placeholder{color:#AEAEB2}
+
+  .hp{position:absolute;left:-5000px;opacity:0;height:0;overflow:hidden}
+
+  .footer{padding:28px 0 0}
+  .send{
+    display:block;width:100%;border:0;cursor:pointer;
+    background:var(--accent);color:#fff;font:inherit;font-size:17px;font-weight:600;
+    padding:16px;border-radius:14px;letter-spacing:-.01em;
+    transition:transform .12s, opacity .2s;
+  }
+  .send:active{transform:scale(.985)}
+  .send[disabled]{opacity:.45;cursor:default}
+  .hint{color:var(--ink2);font-size:13.5px;text-align:center;margin-top:12px}
+  .err{display:none;color:#B3261E;font-size:14.5px;text-align:center;margin-top:12px}
+
+  .done{display:none;min-height:82vh;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+  .done .card{max-width:420px}
+  .check{
+    width:72px;height:72px;border-radius:50%;background:var(--ok);
+    margin:0 auto 22px;position:relative;
+    animation:pop .45s cubic-bezier(.34,1.56,.64,1)
+  }
+  .check::after{
+    content:"";position:absolute;inset:0;margin:auto;width:20px;height:34px;
+    border:solid #fff;border-width:0 4px 4px 0;transform:translateY(-4px) rotate(45deg);
+  }
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .done p{color:var(--ink2);margin-top:10px;font-size:16px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+    html{scroll-behavior:auto}
+  }
+  @media (max-width:400px){
+    .scale{grid-template-columns:repeat(6,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><i id="bar"></i></div>
+<div class="pill" id="pill">0 из 18</div>
+
+<main class="wrap" id="form">
+  <header>
+    <h1>Уверенность при ходьбе</h1>
+    <p class="lead">Это займёт около <b>4&nbsp;минут</b>. Ниже — обычные повседневные дела. По каждому отметьте, <b>насколько вы беспокоитесь о том, что могли бы упасть</b>, когда это делаете.</p>
+    <p class="lead">Отвечайте, думая о том, как вы обычно это делаете. Если сейчас вы чем-то из перечисленного не занимаетесь, ответьте так, как если бы вам пришлось это сделать. Правильных и неправильных ответов здесь нет. Результаты увидит только Павел — обсудите их на встрече.</p>
+  </header>
+
+  <div class="section-title">Ваше имя — обязательно</div>
+  <div class="field" id="nameGroup"><input id="name" type="text" placeholder="Имя или код, о котором договорились" autocomplete="off"></div>
+  <input class="hp" id="hp" type="text" tabindex="-1" autocomplete="off">
+
+  <div class="section-title">Насколько вы беспокоитесь, что упадёте, когда…</div>
+  <div id="fes"></div>
+
+  <div class="section-title">И последнее</div>
+  <div class="group" id="impactGroup">
+    <div class="q"><span class="num">17.</span>Насколько страх упасть мешает вашей жизни прямо сейчас?
+      <span class="ex">0 — совсем не мешает, 10 — мешает предельно сильно</span></div>
+    <div class="scale" id="impact" role="radiogroup"></div>
+    <div class="scale-ends"><span>0 — не мешает</span><span>10 — мешает предельно</span></div>
+  </div>
+
+  <div class="group" id="fallsGroup">
+    <div class="q"><span class="num">18.</span>Сколько раз вы падали за последние 4 недели?</div>
+    <div class="opts" id="falls" role="radiogroup"></div>
+  </div>
+
+  <div class="footer">
+    <button class="send" id="send" disabled>Отправить ответы</button>
+    <p class="hint" id="hint">Кнопка станет активной, когда вы укажете имя и ответите на все вопросы.</p>
+    <p class="err" id="err">Не получилось отправить. Проверьте интернет и попробуйте ещё раз — или просто напишите Павлу в Telegram, что заполнили, а отправить не вышло.</p>
+  </div>
+</main>
+
+<section class="done" id="done">
+  <div class="card">
+    <div class="check" role="img" aria-label="Готово"></div>
+    <h2>Ответы отправлены</h2>
+    <p>Спасибо. Павел посмотрит результаты и обсудит их с вами на ближайшей встрече.</p>
+  </div>
+</section>
+
+<script>
+/* ============================================================
+   НАСТРОЙКА — те же две строки, что и в основном опроснике.
+   ============================================================ */
+const TOKEN   = "8949208478:AAF7L-dOuhlUPGwMDrkCOzGWaUpwjF2Rjhk";
+const CHAT_ID = "8785621356";
+/* ============================================================ */
+
+const OPTS = ["Совсем не беспокоюсь","Немного беспокоюсь","Довольно сильно беспокоюсь","Очень сильно беспокоюсь"];
+
+/* FES-I, 16 пунктов. Ответы 1–4, сумма 16–64. */
+const FES = [
+  ["Убираетесь дома", "например, подметаете, пылесосите, вытираете пыль"],
+  ["Одеваетесь или раздеваетесь", ""],
+  ["Готовите себе несложную еду", ""],
+  ["Принимаете ванну или душ", ""],
+  ["Идёте в магазин", ""],
+  ["Садитесь на стул или встаёте с него", ""],
+  ["Поднимаетесь или спускаетесь по лестнице", ""],
+  ["Гуляете рядом с домом", ""],
+  ["Тянетесь за чем-то — вверх над головой или вниз к полу", ""],
+  ["Спешите взять трубку, пока телефон не перестал звонить", ""],
+  ["Идёте по скользкой поверхности", "например, по мокрому асфальту или по льду"],
+  ["Идёте в гости к другу или родственнику", ""],
+  ["Идёте там, где много людей", ""],
+  ["Идёте по неровной поверхности", "например, по камням или по разбитому тротуару"],
+  ["Поднимаетесь или спускаетесь по склону", ""],
+  ["Идёте на встречу или мероприятие", "например, семейный праздник, собрание, любое место, где собираются люди"]
+];
+
+const FALLS = ["Ни разу","Один раз","Два-три раза","Четыре раза и больше"];
+
+const answers = { fes: Array(16).fill(null), impact: null, falls: null };
+const TOTAL = 19; // 16 пунктов + влияние + падения + имя
+
+function buildRadios(containerId, items, key){
+  const box = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const text = Array.isArray(item) ? item[0] : item;
+    const ex   = Array.isArray(item) ? item[1] : "";
+    const g = document.createElement('div');
+    g.className = 'group'; g.id = key + i;
+    g.innerHTML = '<div class="q" role="heading" aria-level="3"><span class="num">' + (i + 1) + '.</span>' +
+                  text + (ex ? '<span class="ex">' + ex + '</span>' : '') + '</div>';
+    const opts = document.createElement('div');
+    opts.className = 'opts'; opts.setAttribute('role','radiogroup');
+    OPTS.forEach((label, v) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt';
+      b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+      b.innerHTML = '<span class="ring" aria-hidden="true"></span>' + label;
+      b.addEventListener('click', () => {
+        answers[key][i] = v + 1;               // 1..4
+        opts.querySelectorAll('.opt').forEach(o => o.setAttribute('aria-checked','false'));
+        b.setAttribute('aria-checked','true');
+        g.classList.remove('miss');
+        refresh();
+      });
+      opts.appendChild(b);
+    });
+    g.appendChild(opts);
+    box.appendChild(g);
+  });
+}
+buildRadios('fes', FES, 'fes');
+
+/* падения за 4 недели */
+(function(){
+  const box = document.getElementById('falls');
+  FALLS.forEach((label, v) => {
+    const b = document.createElement('button');
+    b.type='button'; b.className='opt';
+    b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+    b.innerHTML = '<span class="ring" aria-hidden="true"></span>' + label;
+    b.addEventListener('click', () => {
+      answers.falls = v;
+      box.querySelectorAll('.opt').forEach(o=>o.setAttribute('aria-checked','false'));
+      b.setAttribute('aria-checked','true');
+      document.getElementById('fallsGroup').classList.remove('miss');
+      refresh();
+    });
+    box.appendChild(b);
+  });
+})();
+
+/* шкала влияния 0–10 */
+(function(){
+  const box = document.getElementById('impact');
+  for (let v = 0; v <= 10; v++){
+    const b = document.createElement('button');
+    b.type='button'; b.className='sc';
+    b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+    b.textContent = v;
+    b.addEventListener('click', () => {
+      answers.impact = v;
+      box.querySelectorAll('.sc').forEach(o=>o.setAttribute('aria-checked','false'));
+      b.setAttribute('aria-checked','true');
+      document.getElementById('impactGroup').classList.remove('miss');
+      refresh();
+    });
+    box.appendChild(b);
+  }
+})();
+
+const bar = document.getElementById('bar'), pill = document.getElementById('pill'),
+      send = document.getElementById('send'), hint = document.getElementById('hint'),
+      err = document.getElementById('err');
+
+function nameOk(){ return document.getElementById('name').value.trim().length >= 2; }
+function countDone(){
+  return (nameOk()?1:0) + answers.fes.filter(v=>v!==null).length +
+         (answers.impact!==null?1:0) + (answers.falls!==null?1:0);
+}
+function refresh(){
+  const n = countDone();
+  bar.style.width = (n/TOTAL*100) + '%';
+  pill.textContent = n + ' из ' + TOTAL;
+  pill.classList.toggle('show', n > 0 && n < TOTAL);
+  send.disabled = n < TOTAL;
+  hint.style.display = n < TOTAL ? '' : 'none';
+}
+
+function interpFES(s){
+  if (s <= 19) return 'низкая обеспокоенность падением';
+  if (s <= 27) return 'умеренная обеспокоенность падением';
+  return 'высокая обеспокоенность падением';
+}
+
+send.addEventListener('click', async () => {
+  if (!nameOk()){
+    const g = document.getElementById('nameGroup');
+    g.classList.add('miss'); g.scrollIntoView({block:'center'});
+    document.getElementById('name').focus();
+    return;
+  }
+  if (countDone() < TOTAL){
+    let id = null;
+    const firstMiss = [...answers.fes.keys()].find(i => answers.fes[i] === null);
+    if (firstMiss !== undefined) id = 'fes' + firstMiss;
+    else if (answers.impact === null) id = 'impactGroup';
+    else if (answers.falls === null) id = 'fallsGroup';
+    if (id){
+      const el = document.getElementById(id);
+      el.classList.add('miss'); el.scrollIntoView({block:'center'});
+    }
+    return;
+  }
+  if (document.getElementById('hp').value) return; // honeypot
+
+  const sum  = answers.fes.reduce((a,b)=>a+b,0);
+  const name = document.getElementById('name').value.trim();
+
+  const hard = FES
+    .map((item, i) => ({ t: Array.isArray(item)?item[0]:item, v: answers.fes[i] }))
+    .filter(x => x.v >= 3)
+    .sort((a,b) => b.v - a.v);
+
+  let msg = 'Шкала уверенности при ходьбе (FES-I) — ' + name + '\n' +
+    new Date().toLocaleString('ru-RU', {dateStyle:'short', timeStyle:'short'}) + '\n\n' +
+    'FES-I: ' + sum + '/64 — ' + interpFES(sum) + '\n' +
+    'Мешает жизни: ' + answers.impact + '/10\n' +
+    'Падений за 4 недели: ' + FALLS[answers.falls].toLowerCase() + '\n';
+
+  if (hard.length){
+    msg += '\nСамые тревожные ситуации (черновик иерархии):\n';
+    hard.forEach(x => { msg += '- ' + x.t + ' — ' + x.v + '/4\n'; });
+  } else {
+    msg += '\nСитуаций с оценкой 3-4 нет.\n';
+  }
+
+  msg += '\nОтветы по пунктам 1-16: ' + answers.fes.join(', ');
+
+  send.disabled = true; send.textContent = 'Отправляем…'; err.style.display = 'none';
+  try {
+    const r = await fetch('https://api.telegram.org/bot' + TOKEN + '/sendMessage', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
+    });
+    if (!r.ok) throw new Error('telegram ' + r.status);
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('pill').style.display = 'none';
+    bar.style.width = '100%';
+    const done = document.getElementById('done');
+    done.style.display = 'flex';
+    window.scrollTo(0,0);
+  } catch(e){
+    err.style.display = 'block';
+    send.disabled = false; send.textContent = 'Отправить ответы';
+  }
+});
+
+document.getElementById('name').addEventListener('input', () => {
+  if (nameOk()) document.getElementById('nameGroup').classList.remove('miss');
+  refresh();
+});
+refresh();
+</script>
+</body>
+</html>
