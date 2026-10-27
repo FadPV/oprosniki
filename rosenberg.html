@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Шкала самооценки — Павел Фадеев</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --group:#F5F5F7; --ink:#1D1D1F; --ink2:#6E6E73;
+    --hair:#E5E5EA; --accent:#0A84FF; --ok:#34C759; --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    font-size:17px; line-height:1.45;
+    padding-bottom:120px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px}
+
+  .progress{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:20}
+  .progress i{display:block;height:100%;width:0%;background:var(--accent);transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .pill{
+    position:fixed;top:14px;right:16px;z-index:20;
+    font-size:13px;font-weight:600;color:var(--ink2);
+    background:rgba(245,245,247,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--hair);border-radius:100px;padding:6px 12px;
+    opacity:0;transform:translateY(-6px);transition:.3s;
+  }
+  .pill.show{opacity:1;transform:none}
+
+  header{padding:72px 0 36px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .lead{color:var(--ink2);margin-top:12px;font-size:16px}
+  .lead b{color:var(--ink);font-weight:600}
+  .lead + .lead{margin-top:10px}
+
+  .section-title{
+    font-size:13px;font-weight:600;color:var(--ink2);
+    text-transform:uppercase;letter-spacing:.06em;
+    margin:36px 4px 10px;
+  }
+  .group{background:var(--group);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+  .group.miss,.field.miss{outline:2px solid var(--accent);outline-offset:2px}
+  .q{padding:16px 18px 6px;font-weight:600;font-size:16px;letter-spacing:-.01em}
+  .q .num{color:var(--ink2);font-weight:600;margin-right:6px}
+  .opts{padding:8px 8px 10px}
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:transparent;border:0;text-align:left;cursor:pointer;
+    font:inherit;font-size:15.5px;color:var(--ink);
+    padding:11px 10px;border-radius:11px;
+    transition:background .15s;
+  }
+  .opt:active{background:#E8E8ED}
+  .ring{
+    flex:0 0 22px;height:22px;border-radius:50%;
+    border:1.6px solid #C7C7CC;background:#fff;position:relative;transition:.18s;
+  }
+  .opt[aria-checked="true"]{font-weight:600}
+  .opt[aria-checked="true"] .ring{background:var(--accent);border-color:var(--accent)}
+  .opt[aria-checked="true"] .ring::after{
+    content:"";position:absolute;inset:0;margin:auto;width:7px;height:11px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg);
+  }
+
+  .field{background:var(--group);border-radius:var(--radius);padding:6px 18px;margin-bottom:14px}
+  .field input{
+    width:100%;border:0;background:transparent;font:inherit;font-size:17px;
+    padding:12px 0;color:var(--ink);outline:none;
+  }
+  .field input::placeholder{color:#AEAEB2}
+
+  .hp{position:absolute;left:-5000px;opacity:0;height:0;overflow:hidden}
+
+  .footer{padding:28px 0 0}
+  .send{
+    display:block;width:100%;border:0;cursor:pointer;
+    background:var(--accent);color:#fff;font:inherit;font-size:17px;font-weight:600;
+    padding:16px;border-radius:14px;letter-spacing:-.01em;
+    transition:transform .12s, opacity .2s;
+  }
+  .send:active{transform:scale(.985)}
+  .send[disabled]{opacity:.45;cursor:default}
+  .hint{color:var(--ink2);font-size:13.5px;text-align:center;margin-top:12px}
+  .err{display:none;color:#B3261E;font-size:14.5px;text-align:center;margin-top:12px}
+
+  .done{display:none;min-height:82vh;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+  .done .card{max-width:420px}
+  .check{
+    width:72px;height:72px;border-radius:50%;background:var(--ok);
+    margin:0 auto 22px;position:relative;
+    animation:pop .45s cubic-bezier(.34,1.56,.64,1)
+  }
+  .check::after{
+    content:"";position:absolute;inset:0;margin:auto;width:20px;height:34px;
+    border:solid #fff;border-width:0 4px 4px 0;transform:translateY(-4px) rotate(45deg);
+  }
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .done p{color:var(--ink2);margin-top:10px;font-size:16px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><i id="bar"></i></div>
+<div class="pill" id="pill">0 из 11</div>
+
+<main class="wrap" id="form">
+  <header>
+    <h1>Отношение к себе</h1>
+    <p class="lead">Это займёт около <b>2&nbsp;минут</b>. Ниже — 10 утверждений о том, как человек относится к себе. По каждому отметьте, <b>насколько вы с ним согласны</b>.</p>
+    <p class="lead">Отвечайте так, как чувствуете обычно, сейчас, — а не как «правильно» или как хотелось бы. Долго не раздумывайте: первый ответ обычно самый точный. Правильных и неправильных ответов здесь нет. Результаты увидит только Павел — обсудите их на встрече.</p>
+  </header>
+
+  <div class="section-title">Ваше имя — обязательно</div>
+  <div class="field" id="nameGroup"><input id="name" type="text" placeholder="Имя или код, о котором договорились" autocomplete="off"></div>
+  <input class="hp" id="hp" type="text" tabindex="-1" autocomplete="off">
+
+  <div class="section-title">Насколько вы согласны с утверждением</div>
+  <div id="rses"></div>
+
+  <div class="footer">
+    <button class="send" id="send" disabled>Отправить ответы</button>
+    <p class="hint" id="hint">Кнопка станет активной, когда вы укажете имя и ответите на все вопросы.</p>
+    <p class="err" id="err">Не получилось отправить. Проверьте интернет и попробуйте ещё раз — или просто напишите Павлу в Telegram, что заполнили, а отправить не вышло.</p>
+  </div>
+</main>
+
+<section class="done" id="done">
+  <div class="card">
+    <div class="check" role="img" aria-label="Готово"></div>
+    <h2>Ответы отправлены</h2>
+    <p>Спасибо. Павел посмотрит результаты и обсудит их с вами на ближайшей встрече.</p>
+  </div>
+</section>
+
+<script>
+/* ============================================================
+   НАСТРОЙКА — те же две строки, что и в основном опроснике.
+   ============================================================ */
+const TOKEN   = "8949208478:AAF7L-dOuhlUPGwMDrkCOzGWaUpwjF2Rjhk";
+const CHAT_ID = "8785621356";
+/* ============================================================ */
+
+const OPTS = ["Полностью согласен(на)","Согласен(на)","Не согласен(на)","Совсем не согласен(на)"];
+
+/* Шкала самооценки Розенберга (RSES), 10 пунктов.
+   Прямые пункты: 3 / 2 / 1 / 0 за ответы сверху вниз.
+   Обратные пункты (r = true): 0 / 1 / 2 / 3. Сумма 0–30. */
+const RSES = [
+  ["В целом я доволен(на) собой.", false],
+  ["Временами мне кажется, что я совсем ни на что не гожусь.", true],
+  ["Я думаю, что у меня есть ряд хороших качеств.", false],
+  ["Я могу делать что-то не хуже, чем большинство людей.", false],
+  ["Мне кажется, что мне особенно нечем гордиться.", true],
+  ["Временами я определённо чувствую себя бесполезным(ой).", true],
+  ["Я чувствую, что я ценный человек — по крайней мере, не хуже других.", false],
+  ["Мне хотелось бы больше уважать себя.", true],
+  ["В целом я склонен(на) считать себя неудачником(цей).", true],
+  ["Я отношусь к себе положительно.", false]
+];
+
+const answers = { rses: Array(10).fill(null) }; // индекс ответа 0..3
+const TOTAL = 11; // 10 пунктов + имя
+
+(function build(){
+  const box = document.getElementById('rses');
+  RSES.forEach((item, i) => {
+    const g = document.createElement('div');
+    g.className = 'group'; g.id = 'rses' + i;
+    g.innerHTML = '<div class="q" role="heading" aria-level="3"><span class="num">' + (i + 1) + '.</span>' + item[0] + '</div>';
+    const opts = document.createElement('div');
+    opts.className = 'opts'; opts.setAttribute('role','radiogroup');
+    OPTS.forEach((label, v) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt';
+      b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+      b.innerHTML = '<span class="ring" aria-hidden="true"></span>' + label;
+      b.addEventListener('click', () => {
+        answers.rses[i] = v;
+        opts.querySelectorAll('.opt').forEach(o => o.setAttribute('aria-checked','false'));
+        b.setAttribute('aria-checked','true');
+        g.classList.remove('miss');
+        refresh();
+      });
+      opts.appendChild(b);
+    });
+    g.appendChild(opts);
+    box.appendChild(g);
+  });
+})();
+
+const bar = document.getElementById('bar'), pill = document.getElementById('pill'),
+      send = document.getElementById('send'), hint = document.getElementById('hint'),
+      err = document.getElementById('err');
+
+function nameOk(){ return document.getElementById('name').value.trim().length >= 2; }
+function countDone(){ return (nameOk()?1:0) + answers.rses.filter(v=>v!==null).length; }
+function refresh(){
+  const n = countDone();
+  bar.style.width = (n/TOTAL*100) + '%';
+  pill.textContent = n + ' из ' + TOTAL;
+  pill.classList.toggle('show', n > 0 && n < TOTAL);
+  send.disabled = n < TOTAL;
+  hint.style.display = n < TOTAL ? '' : 'none';
+}
+
+function itemScore(i){
+  const v = answers.rses[i];            // 0 = полностью согласен … 3 = совсем не согласен
+  return RSES[i][1] ? v : 3 - v;        // балл 0..3, где 3 — самое благоприятное
+}
+function interp(s){
+  if (s < 15)  return 'низкая самооценка';
+  if (s <= 25) return 'в пределах нормы';
+  return 'высокая самооценка';
+}
+
+send.addEventListener('click', async () => {
+  if (!nameOk()){
+    const g = document.getElementById('nameGroup');
+    g.classList.add('miss'); g.scrollIntoView({block:'center'});
+    document.getElementById('name').focus();
+    return;
+  }
+  if (countDone() < TOTAL){
+    const i = answers.rses.findIndex(v => v === null);
+    if (i >= 0){
+      const el = document.getElementById('rses' + i);
+      el.classList.add('miss'); el.scrollIntoView({block:'center'});
+    }
+    return;
+  }
+  if (document.getElementById('hp').value) return; // honeypot
+
+  const scores = RSES.map((_, i) => itemScore(i));
+  const sum  = scores.reduce((a,b)=>a+b,0);
+  const name = document.getElementById('name').value.trim();
+
+  const low = RSES
+    .map((item, i) => ({ t: item[0], a: OPTS[answers.rses[i]].toLowerCase(), s: scores[i] }))
+    .filter(x => x.s === 0);
+
+  let msg = 'Шкала самооценки Розенберга (RSES) — ' + name + '\n' +
+    new Date().toLocaleString('ru-RU', {dateStyle:'short', timeStyle:'short'}) + '\n\n' +
+    'Итого: ' + sum + '/30 — ' + interp(sum) + '\n' +
+    '(ниже 15 — низкая · 15–25 — норма · выше 25 — высокая)\n';
+
+  if (low.length){
+    msg += '\nСамые тяжёлые ответы (0 баллов):\n';
+    low.forEach(x => { msg += '- «' + x.t + '» — ' + x.a + '\n'; });
+  } else {
+    msg += '\nОтветов на 0 баллов нет.\n';
+  }
+
+  msg += '\nБаллы по пунктам 1-10 (после обратного счёта, 0-3): ' + scores.join(', ');
+
+  send.disabled = true; send.textContent = 'Отправляем…'; err.style.display = 'none';
+  try {
+    const r = await fetch('https://api.telegram.org/bot' + TOKEN + '/sendMessage', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
+    });
+    if (!r.ok) throw new Error('telegram ' + r.status);
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('pill').style.display = 'none';
+    bar.style.width = '100%';
+    const done = document.getElementById('done');
+    done.style.display = 'flex';
+    window.scrollTo(0,0);
+  } catch(e){
+    err.style.display = 'block';
+    send.disabled = false; send.textContent = 'Отправить ответы';
+  }
+});
+
+document.getElementById('name').addEventListener('input', () => {
+  if (nameOk()) document.getElementById('nameGroup').classList.remove('miss');
+  refresh();
+});
+refresh();
+</script>
+</body>
+</html>
